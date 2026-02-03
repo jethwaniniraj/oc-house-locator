@@ -1,37 +1,31 @@
 import streamlit as st
-import json
-
-# Page styling
-st.set_page_config(page_title="OC House Locator", page_icon="🔍")
+import requests
 
 st.title("Orange County House Locator")
-st.write("Find real houses for sale by ZIP Code")
 
-# Search Box (Replaces the Flask Form)
-zip_code = st.text_input("Enter ZIP (e.g. 92618)", placeholder="92618")
+# Get your API Key from Streamlit Secrets (Set this up in Step 2)
+API_KEY = st.secrets["RENTCAST_API_KEY"]
+
+zip_code = st.text_input("Enter ZIP (e.g., 92620)")
 
 if zip_code:
-    try:
-        # Open your existing data.json
-        with open("data.json", "r", encoding="utf-8") as f:
-            data = json.load(f)
-            listings = data.get(zip_code, [])
+    # This URL asks the RentCast API for real listings in the entered ZIP
+    url = f"https://api.rentcast.io/v1/listings/sale?zipCode={zip_code}&limit=10"
+    headers = {"accept": "application/json", "X-Api-Key": API_KEY}
 
+    with st.spinner(f"Fetching real-time data for {zip_code}..."):
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 200:
+            listings = response.json()
             if listings:
-                st.subheader(f"Houses in {zip_code}")
-                
-                # Display results in a clean grid
+                st.subheader(f"Live Houses in {zip_code}")
                 for house in listings:
-                    with st.container():
-                        # Using Markdown for nice formatting
-                        st.markdown(f"### ${house['price']:,}")
-                        st.write(f"**Address:** {house['addressLine1']}")
-                        st.write(f"🛏️ {house['bedrooms']} Bed | 🚿 {house['bathrooms']} Bath")
-                        st.divider()
+                    st.markdown(f"### ${house.get('price', 0):,}")
+                    st.write(f"📍 {house.get('addressLine1')}")
+                    st.write(f"🛌 {house.get('bedrooms')} Bed | 🛀 {house.get('bathrooms')} Bath")
+                    st.divider()
             else:
-                st.error(f"No data found for ZIP: {zip_code}")
-                
-    except FileNotFoundError:
-        st.error("Missing 'data.json' file. Please upload it to your GitHub repository.")
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+                st.warning(f"No active listings found in RentCast for {zip_code}.")
+        else:
+            st.error("Could not connect to the API. Check your API Key in Secrets.")
