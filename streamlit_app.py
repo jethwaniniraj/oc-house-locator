@@ -1,32 +1,37 @@
 import streamlit as st
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor 
-from sklearn.datasets import fetch_california_housing
+import json
 
-st.set_page_config(page_title="OC Housing Predictor", layout="centered")
-st.title("🏠 OC Housing Price Predictor")
+# Page styling
+st.set_page_config(page_title="OC House Locator", page_icon="🔍")
 
-# Load and Train Model
-@st.cache_resource
-def get_model():
-    housing = fetch_california_housing(as_frame=True)
-    X = housing.frame.drop("MedHouseVal", axis=1)
-    y = housing.frame["MedHouseVal"]
-    model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
-    model.fit(X, y)
-    return model, X.columns
+st.title("Orange County House Locator")
+st.write("Find real houses for sale by ZIP Code")
 
-model, features = get_model()
+# Search Box (Replaces the Flask Form)
+zip_code = st.text_input("Enter ZIP (e.g. 92618)", placeholder="92618")
 
-# User Inputs for Mobile
-st.subheader("Property Details")
-med_inc = st.number_input("Median Income (in $10k)", value=3.5)
-house_age = st.slider("House Age", 1, 52, 25)
-rooms = st.slider("Average Rooms", 1, 10, 5)
+if zip_code:
+    try:
+        # Open your existing data.json
+        with open("data.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            listings = data.get(zip_code, [])
 
-# Predict Button
-if st.button("Predict Value", type="primary"):
-    # We use default values for the other technical features for now
-    input_data = pd.DataFrame([[med_inc, house_age, rooms, 1, 300, 3, 33.7, -117.8]], columns=features)
-    prediction = model.predict(input_data)
-    st.success(f"Estimated Market Value: ${prediction[0] * 100000:,.2f}")
+            if listings:
+                st.subheader(f"Houses in {zip_code}")
+                
+                # Display results in a clean grid
+                for house in listings:
+                    with st.container():
+                        # Using Markdown for nice formatting
+                        st.markdown(f"### ${house['price']:,}")
+                        st.write(f"**Address:** {house['addressLine1']}")
+                        st.write(f"🛏️ {house['bedrooms']} Bed | 🚿 {house['bathrooms']} Bath")
+                        st.divider()
+            else:
+                st.error(f"No data found for ZIP: {zip_code}")
+                
+    except FileNotFoundError:
+        st.error("Missing 'data.json' file. Please upload it to your GitHub repository.")
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
