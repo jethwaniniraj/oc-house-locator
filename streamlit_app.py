@@ -1,3 +1,3 @@
 import streamlit as st
-st.title("🍊 OC House Locator")
+st.title("🍊 OC Homes")
 st.warning("testing in progress.")
