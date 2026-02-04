@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 st.set_page_config(page_title="OC House Locator", page_icon="🍊")
-st.title("🍊 Orange County Real Estate Finder")
+st.title("🍊 Orange County Homes Finder")
 
 # 1. API Key Check
 if "RENTCAST_API_KEY" in st.secrets:
