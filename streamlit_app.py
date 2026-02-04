@@ -18,7 +18,7 @@ if search_type == "ZIP Code":
     search_query = st.text_input("Enter 5-digit ZIP Code", placeholder="e.g. 92618")
     api_param = f"zipCode={search_query}"
 else:
-    search_query = st.text_input("Enter OC City Name", placeholder="e.g. 🍊")
+    search_query = st.text_input("Enter OC City Name", placeholder="e.g. Orange")
     # API requires City and State for accuracy
     api_param = f"city={search_query}&state=CA"
 
