@@ -20,7 +20,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🍊 Orange County Real Estate Finder")
+st.title("🍊 Orange County Home Finder")
 
 # 2. Database (Professional Mock Data)
 LISTINGS = [
