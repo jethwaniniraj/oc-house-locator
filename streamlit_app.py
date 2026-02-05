@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # Page configuration
-st.set_page_config(page_title="Orange County House Locator", page_icon="🍊")
+st.set_page_config(page_title="Orange County Home Finder", page_icon="🍊")
 
 st.title("🍊 Orange County Live House Locator")
 st.write("Search real-time listings across all of Orange County.")
