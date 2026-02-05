@@ -1,208 +1,78 @@
-{
-  "92618": [
-    {
-      "price": 798888,
-      "addressLine1": "185 Sash, Irvine, CA 92618",
-      "bedrooms": 1,
-      "bathrooms": 1,
-      "squareFootage": 971,
-      "propertyType": "Condo",
-      "listingType": "Standard",
-      "daysOnMarket": 356,
-      "latitude": 33.671261,
-      "longitude": -117.70816,
-      "photoUrl": null
-    },
-    {
-      "price": 4580000,
-      "addressLine1": "114 Interstellar, Irvine, CA 92618",
-      "bedrooms": 5,
-      "bathrooms": 5.5,
-      "squareFootage": 4948,
-      "propertyType": "Single Family",
-      "listingType": "Standard",
-      "daysOnMarket": 284,
-      "latitude": 33.682491,
-      "longitude": -117.70483,
-      "photoUrl": null
-    },
-    {
-      "price": 4580000,
-      "addressLine1": "127 Oakstone, Irvine, CA 92618",
-      "bedrooms": 4,
-      "bathrooms": 4.5,
-      "squareFootage": 3220,
-      "propertyType": "Single Family",
-      "listingType": "Standard",
-      "daysOnMarket": 271,
-      "latitude": 33.690334,
-      "longitude": -117.698669,
-      "photoUrl": null
-    },
-    {
-      "price": 1889000,
-      "addressLine1": "223 Gaspar, Irvine, CA 92618",
-      "bedrooms": 4,
-      "bathrooms": 4,
-      "squareFootage": 2372,
-      "propertyType": "Condo",
-      "listingType": "Standard",
-      "daysOnMarket": 265,
-      "latitude": 33.68972,
-      "longitude": -117.707664,
-      "photoUrl": null
-    },
-    {
-      "price": 1680000,
-      "addressLine1": "484 Chorus, Irvine, CA 92618",
-      "bedrooms": 3,
-      "bathrooms": 2.5,
-      "squareFootage": 2480,
-      "propertyType": "Condo",
-      "listingType": "Standard",
-      "daysOnMarket": 240,
-      "latitude": 33.668712,
-      "longitude": -117.71576,
-      "photoUrl": null
-    },
-    {
-      "price": 769999,
-      "addressLine1": "124 Tangelo, Unit 390, Irvine, CA 92618",
-      "bedrooms": 2,
-      "bathrooms": 1,
-      "squareFootage": 868,
-      "propertyType": "Condo",
-      "listingType": "Standard",
-      "daysOnMarket": 211,
-      "latitude": 33.671102,
-      "longitude": -117.775142,
-      "photoUrl": null
-    },
-    {
-      "price": 1790000,
-      "addressLine1": "320 Bronze, Irvine, CA 92618",
-      "bedrooms": 3,
-      "bathrooms": 2.5,
-      "squareFootage": 2064,
-      "propertyType": "Condo",
-      "listingType": "Standard",
-      "daysOnMarket": 227,
-      "latitude": 33.690552,
-      "longitude": -117.743307,
-      "photoUrl": null
-    },
-    {
-      "price": 728500,
-      "addressLine1": "145 Sash, Irvine, CA 92618",
-      "bedrooms": 1,
-      "bathrooms": 1,
-      "squareFootage": 971,
-      "propertyType": "Condo",
-      "listingType": "Standard",
-      "daysOnMarket": 226,
-      "latitude": 33.670792,
-      "longitude": -117.707779,
-      "photoUrl": null
-    },
-    {
-      "price": 2400000,
-      "addressLine1": "131 Spiral, Irvine, CA 92618",
-      "bedrooms": 4,
-      "bathrooms": 5,
-      "squareFootage": 3134,
-      "propertyType": "Condo",
-      "listingType": "Standard",
-      "daysOnMarket": 230,
-      "latitude": 33.684147,
-      "longitude": -117.72592,
-      "photoUrl": null
-    },
-    {
-      "price": 455500,
-      "addressLine1": "14851 Jeffrey Rd, Spc 145, Irvine, CA 92618",
-      "bedrooms": 2,
-      "bathrooms": 2,
-      "squareFootage": 1440,
-      "propertyType": "Manufactured",
-      "listingType": "New Construction",
-      "daysOnMarket": 218,
-      "latitude": 33.688176,
-      "longitude": -117.774546,
-      "photoUrl": null
-    },
-    {
-      "price": 4180000,
-      "addressLine1": "221 Stage, Irvine, CA 92618",
-      "bedrooms": 5,
-      "bathrooms": 5,
-      "squareFootage": 3892,
-      "propertyType": "Single Family",
-      "listingType": "New Construction",
-      "daysOnMarket": 210,
-      "latitude": 33.682262,
-      "longitude": -117.71785,
-      "photoUrl": null
-    },
-    {
-      "price": 3188000,
-      "addressLine1": "70 Livia, Irvine, CA 92618",
-      "bedrooms": 4,
-      "bathrooms": 2,
-      "squareFootage": 2912,
-      "propertyType": "Single Family",
-      "listingType": "Standard",
-      "daysOnMarket": 208,
-      "latitude": 33.639843,
-      "longitude": -117.756264,
-      "photoUrl": null
+import streamlit as st
+import difflib
+
+# 1. Page Configuration & Aesthetic Fix
+st.set_page_config(page_title="OC House Locator", page_icon="🍊")
+
+# Custom CSS to fix the invisible text and add the subtle orange tint
+st.markdown("""
+    <style>
+    .stApp {
+        background: linear-gradient(180deg, #FFF9F2 0%, #FFFFFF 100%);
     }
-  ],
-  "92602": [
-    {
-      "price": 1100000,
-      "addressLine1": "321 Oak Tree Lane",
-      "bedrooms": 3,
-      "bathrooms": 2
-    },
-    {
-      "price": 975000,
-      "addressLine1": "654 Woodbury Rd",
-      "bedrooms": 3,
-      "bathrooms": 2
+    /* Force text to be dark gray so it is visible on the light background */
+    h1, h2, h3, p, label, .stText {
+        color: #31333F !important;
     }
-  ],
-  "92660": [
-    {
-      "price": 3400000,
-      "addressLine1": "100 Newport Coast Dr",
-      "bedrooms": 4,
-      "bathrooms": 3
-    },
-    {
-      "price": 2850000,
-      "addressLine1": "200 Balboa Peninsula",
-      "bedrooms": 3,
-      "bathrooms": 3
-    },
-    {
-      "price": 4200000,
-      "addressLine1": "300 Ocean View Ave",
-      "bedrooms": 5,
-      "bathrooms": 4
+    /* Make the search input stand out */
+    div[data-baseweb="input"] {
+        background-color: white !important;
+        border: 1px solid #FFCC80 !important;
     }
-  ],
-  "92672": [
-    {
-      "price": 1650000,
-      "addressLine1": "50 San Clemente Pier",
-      "bedrooms": 3,
-      "bathrooms": 2
-    },
-    {
-      "price": 1200000,
-      "addressLine1": "75 Avenida Del Mar",
-      "bedrooms": 2,
-      "bathrooms": 2
-    }
-  ]
-}
+    </style>
+    """, unsafe_allow_html=True)
+
+st.title("🍊 Orange County Real Estate Finder")
+
+# 2. Fake Data Database
+FAKE_LISTINGS = [
+    {"address": "29 Small Grove", "city": "Irvine", "zip": "92618", "price": 4080000, "beds": 5, "baths": 6, "type": "Single Family", "sqft": 4209},
+    {"address": "136 Pineview", "city": "Irvine", "zip": "92620", "price": 899000, "beds": 2, "baths": 3, "type": "Condo", "sqft": 1366},
+    {"address": "412 Heliotrope Ave", "city": "Corona Del Mar", "zip": "92625", "price": 8495000, "beds": 4, "baths": 6, "type": "Luxury Villa", "sqft": 3120},
+    {"address": "821 S Fairmont Way", "city": "Orange", "zip": "92869", "price": 1374999, "beds": 4, "baths": 3, "type": "Single Family", "sqft": 2632},
+    {"address": "1822 W 4th St", "city": "Santa Ana", "zip": "92703", "price": 449900, "beds": 3, "baths": 1, "type": "Single Family", "sqft": 767},
+    {"address": "119 Alumroot", "city": "Irvine", "zip": "92620", "price": 2130000, "beds": 4, "baths": 4, "type": "Single Family", "sqft": 2800}
+]
+
+OC_CITIES = list(set([h["city"] for h in FAKE_LISTINGS])) + ["Anaheim", "Newport Beach", "Huntington Beach"]
+
+# 3. Search Interface
+search_type = st.radio("Search by:", ["ZIP Code", "City Name"])
+
+if search_type == "ZIP Code":
+    search_query = st.text_input("Enter 5-digit ZIP", placeholder="e.g. 92620")
+else:
+    search_query = st.text_input("Enter OC City Name", placeholder="e.g. Ivrine")
+
+# 4. Filter Logic
+if search_query:
+    results = []
+    
+    if search_type == "ZIP Code":
+        results = [h for h in FAKE_LISTINGS if h["zip"] == search_query]
+    else:
+        # Spelling Correction Logic
+        normalized = search_query.strip().title()
+        matches = difflib.get_close_matches(normalized, OC_CITIES, n=1, cutoff=0.6)
+        
+        if matches:
+            if matches[0] != normalized:
+                st.info(f"🔍 Showing results for: **{matches[0]}**")
+            results = [h for h in FAKE_LISTINGS if h["city"] == matches[0]]
+
+    # 5. Display Results
+    if results:
+        st.success(f"Found {len(results)} matches in {search_query}!")
+        for house in results:
+            with st.expander(f"🏠 {house['address']}, {house['city']} - ${house['price']:,}"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write(f"**Price:** ${house['price']:,}")
+                    st.write(f"**Beds/Baths:** {house['beds']} / {house['bathrooms' if 'bathrooms' in house else house['baths']]}")
+                with col2:
+                    st.write(f"**Type:** {house['type']}")
+                    st.write(f"**SqFt:** {house['sqft']} sqft")
+    else:
+        st.warning("No listings found in the fake database for that search.")
+else:
+    st.write("Please enter a search term above to see listings.")
