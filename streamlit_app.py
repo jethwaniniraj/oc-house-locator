@@ -1,46 +1,65 @@
 import streamlit as st
 import requests
-import difflib
 
-st.set_page_config(page_title="OC House Locator", page_icon="🍊")
+# Page configuration
+st.set_page_config(page_title="Orange County House Locator", page_icon="🍊")
 
-# --- AESTHETIC FIX ---
-st.markdown("""<style>.stApp { background: #FFF9F2; } p, h1, h2, h3, label { color: #31333F !important; }</style>""", unsafe_allow_html=True)
+st.title("🍊 Orange County Live House Locator")
+st.write("Search real-time listings across all of Orange County.")
 
-st.title("🍊 OC Real Estate Finder")
+# 1. Securely access the API Key from Streamlit Secrets
+if "RENTCAST_API_KEY" in st.secrets:
+    API_KEY = st.secrets["RENTCAST_API_KEY"]
+else:
+    st.error("Missing RENTCAST_API_KEY. Please add it to your Streamlit Cloud Secrets.")
+    st.stop()
 
-OC_CITIES = ["Irvine", "Anaheim", "Newport Beach", "Santa Ana", "Huntington Beach"] # Add all 34 OC cities here
+# 2. User Input for ZIP code
+zip_code = st.text_input("Enter any OC ZIP Code", placeholder="e.g., 92618, 92660, 92701")
 
-# --- API SECURE LOAD ---
-API_KEY = st.secrets.get("RENTCAST_API_KEY", None)
+if zip_code:
+    # Ensure it's a valid 5-digit ZIP
+    if len(zip_code) == 5 and zip_code.isdigit():
+        # Universal formula: searches any ZIP provided in the input
+        url = f"https://api.rentcast.io/v1/listings/sale?zipCode={zip_code}&limit=15"
+        headers = {
+            "accept": "application/json",
+            "X-Api-Key": API_KEY
+        }
 
-search_query = st.text_input("Enter OC City Name", placeholder="e.g. Ivrine")
-
-if search_query:
-    normalized = search_query.strip().title()
-    matches = difflib.get_close_matches(normalized, OC_CITIES, n=1, cutoff=0.6)
-    city_to_search = matches[0] if matches else normalized
-    
-    if matches and matches[0] != normalized:
-        st.info(f"🔍 Did you mean: **{matched_city}**?")
-
-    if not API_KEY:
-        st.error("🚨 API Key missing! Please add RENTCAST_API_KEY to your Streamlit Secrets.")
+        with st.spinner(f"Finding houses in {zip_code}..."):
+            try:
+                response = requests.get(url, headers=headers)
+                
+                if response.status_code == 200:
+                    listings = response.json()
+                    
+                    if listings:
+                        st.success(f"Found {len(listings)} active listings!")
+                        
+                        for house in listings:
+                            # Pulling specific fields: Address, City, State
+                            addr = house.get('addressLine1', 'No Address')
+                            city = house.get('city', 'Unknown City')
+                            state = house.get('state', 'CA')
+                            price = house.get('price', 0)
+                            
+                            # Displaying City and State clearly in the expander title
+                            with st.expander(f"🏠 {addr}, {city}, {state} - ${price:,}"):
+                                col1, col2 = st.columns(2)
+                                with col1:
+                                    st.write(f"**City:** {city}")
+                                    st.write(f"**Bedrooms:** {house.get('bedrooms')}")
+                                    st.write(f"**Bathrooms:** {house.get('bathrooms')}")
+                                with col2:
+                                    st.write(f"**Property Type:** {house.get('propertyType')}")
+                                    st.write(f"**Living Area:** {house.get('squareFootage')} sqft")
+                    else:
+                        st.warning(f"No active listings found for ZIP {zip_code}.")
+                else:
+                    st.error(f"API Error: {response.status_code}. Please check your API key.")
+            
+            except Exception as e:
+                st.error(f"A connection error occurred: {e}")
     else:
-        url = f"https://api.rentcast.io/v1/listings/sale?city={city_to_search}&state=CA&limit=10"
-        headers = {"X-Api-Key": API_KEY}
-        
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            listings = response.json()
-            if listings:
-                for house in listings:
-                    with st.expander(f"🏠 {house.get('addressLine1')} - ${house.get('price', 0):,}"):
-                        st.write(f"**City:** {house.get('city')}")
-                        st.write(f"**Beds/Baths:** {house.get('bedrooms')}/{house.get('bathrooms')}")
-            else:
-                st.warning("No listings found.")
-        elif response.status_code == 401:
-            st.error("🔑 API Error 401: Your RentCast API key is invalid or inactive.")
-        else:
-            st.error(f"Error {response.status_code}: Something went wrong.")
+        st.info("Please enter a valid 5-digit ZIP code to start the search.")
