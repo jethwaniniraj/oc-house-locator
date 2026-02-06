@@ -5,7 +5,7 @@ import difflib
 # 1. Page Configuration
 st.set_page_config(page_title="OC House Locator", page_icon="🍊")
 
-# 2. CSS: PINNED BOTTOM BAR, ORANGE GLOW, & PERFECTLY ALIGNED BUTTONS
+# 2. CSS: PINNED BOTTOM BAR, ORANGE GLOW, & RIGHT-SIDE BUTTON
 st.markdown("""
     <style>
     .stApp {
@@ -14,7 +14,7 @@ st.markdown("""
         background-attachment: fixed;
     }
     
-    /* FIX THE ENTIRE ROW TO THE BOTTOM & REMOVE COLUMN GAPS */
+    /* FIX THE ROW TO THE BOTTOM & CENTER THE SEARCH BAR */
     div[data-testid="stHorizontalBlock"] {
         position: fixed;
         bottom: 50px;
@@ -22,11 +22,11 @@ st.markdown("""
         transform: translateX(-50%);
         z-index: 1000;
         width: 100%;
-        max-width: 850px;
+        max-width: 800px;
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 15px !important; /* Controlled spacing between buttons and bar */
+        gap: 15px !important;
     }
 
     /* PRESERVED SEARCH BAR STYLE WITH GLOW */
@@ -38,7 +38,7 @@ st.markdown("""
         box-shadow: 0 0 15px 5px rgba(255, 140, 0, 0.4) !important;
     }
 
-    /* STYLE FOR CIRCLE FILTER BUTTONS */
+    /* STYLE FOR CIRCLE FILTER BUTTON */
     .stButton > button {
         border-radius: 50% !important;
         width: 55px !important;
@@ -59,7 +59,7 @@ st.markdown("""
         background-color: #FFF9F2 !important;
     }
 
-    /* REMOVE DEFAULT PADDING THAT THROWS OFF ALIGNMENT */
+    /* Column Reset for Alignment */
     div[data-testid="column"] {
         display: flex;
         justify-content: center;
@@ -92,17 +92,14 @@ def load_and_index_data():
 
 DATA_BY_ZIP, DATA_BY_CITY, KNOWN_CITIES = load_and_index_data()
 
-# 4. BOTTOM INTERFACE: PERFECTLY CENTERED ROW
-col1, col2, col3 = st.columns([1, 5, 1])
+# 4. BOTTOM INTERFACE: [Search Bar] [Filter Button]
+# Use a two-column setup where col1 is the main search and col2 is the button
+col1, col2 = st.columns([6, 1])
 
 with col1:
-    st.button("⚖️", key="filter_left")
-
-with col2:
-    # Width of col2 is controlled by max-width in CSS above
     search_query = st.text_input("", placeholder="Search by ZIP or City", label_visibility="collapsed")
 
-with col3:
+with col2:
     st.button("🛏️", key="filter_right")
 
 # 5. FILTER & DISPLAY LOGIC
