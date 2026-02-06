@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import difflib
 
-# 1. Page Configuration (Vibrant Oranges preserved)
+# 1. Page Configuration (Preserving your vibrant style)
 st.set_page_config(page_title="OC House Locator", page_icon="🍊")
 
 st.markdown("""
@@ -20,66 +20,67 @@ st.markdown("""
 
 st.title("🍊 Orange County Home Finder")
 
-# 2. LOAD SAVED DATA & PREP CITY LIST
+# 2. LOAD DATA & FLATTEN FOR CITY SEARCH
 @st.cache_data
-def load_and_prep_data():
+def load_and_index_data():
     try:
         with open('data.json', 'r') as f:
-            full_data = json.load(f)
+            raw_data = json.load(f)
         
-        # Flatten the data so we can search by City easily
-        all_listings = []
-        cities = set()
-        for zip_code in full_data:
-            for listing in full_data[zip_code]:
-                all_listings.append(listing)
-                if listing.get("city"):
-                    cities.add(listing["city"])
+        # We need to transform the "ZIP-grouped" data into a searchable list
+        flattened_list = []
+        city_to_listings = {}
         
-        return full_data, all_listings, list(cities)
+        for zip_key, listings in raw_data.items():
+            for house in listings:
+                # Add the ZIP back to the house object for display
+                house['zipCode'] = zip_key
+                flattened_list.append(house)
+                
+                # Group by city for fast lookup
+                city_name = house.get('city', 'Unknown').strip().title()
+                if city_name not in city_to_listings:
+                    city_to_listings[city_name] = []
+                city_to_listings[city_name].append(house)
+                
+        return raw_data, city_to_listings, list(city_to_listings.keys())
     except FileNotFoundError:
-        return {}, [], []
+        return {}, {}, []
 
-DATA_BY_ZIP, ALL_LISTINGS, KNOWN_CITIES = load_and_prep_data()
+DATA_BY_ZIP, DATA_BY_CITY, KNOWN_CITIES = load_and_index_data()
 
 # 3. Search Interface
-search_type = st.radio("Search by:", ["ZIP Code", "City Name"])
-search_query = st.text_input(f"Enter {search_type}")
+search_mode = st.radio("Search by:", ["ZIP Code", "City Name"])
+search_input = st.text_input(f"Enter {search_mode}")
 
-# 4. Filter Logic
-if search_query:
-    results = []
-    
-    if search_type == "ZIP Code":
-        # Direct lookup in the dictionary keys
-        results = DATA_BY_ZIP.get(search_query, [])
+# 4. Search Logic
+results = []
+if search_input:
+    if search_mode == "ZIP Code":
+        # Direct lookup by the ZIP key in your JSON
+        results = DATA_BY_ZIP.get(search_input, [])
     else:
-        # City Search with Autocorrect
-        normalized = search_query.strip().title()
-        matches = difflib.get_close_matches(normalized, KNOWN_CITIES, n=1, cutoff=0.6)
-        
+        # Autocorrect city names against the data you actually have
+        matches = difflib.get_close_matches(search_input.title(), KNOWN_CITIES, n=1, cutoff=0.6)
         if matches:
-            target_city = matches[0]
-            if target_city != normalized:
-                st.info(f"🔍 Showing results for: **{target_city}**")
-            # Filter all listings for this city
-            results = [h for h in ALL_LISTINGS if h.get("city") == target_city]
+            if matches[0] != search_input.title():
+                st.info(f"🔍 Showing results for: **{matches[0]}**")
+            results = DATA_BY_CITY.get(matches[0], [])
 
-    # 5. Display Results
-    if results:
-        st.success(f"Showing {len(results)} listings in {search_query}")
-        for house in results:
-            price = house.get('price', 0)
-            addr = house.get('addressLine1', 'Unknown Address')
-            with st.expander(f"🏠 {addr} - ${price:,}"):
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.write(f"**Price:** ${price:,}")
-                    st.write(f"**Beds:** {house.get('bedrooms', 'N/A')}")
-                with col2:
-                    st.write(f"**Baths:** {house.get('bathrooms', 'N/A')}")
-                    st.button("View Details", key=addr)
-    else:
-        st.warning(f"No listings found for that {search_type.lower()}.")
-else:
-    st.write("Enter a ZIP or City to see your saved Orange County listings.")
+# 5. Display Results (Using the API fields from your JSON)
+if results:
+    st.success(f"Showing {len(results)} active listings found in our database.")
+    for house in results:
+        addr = house.get('addressLine1', 'Listing')
+        price = house.get('price', 0)
+        
+        with st.expander(f"🏠 {addr} - ${price:,}"):
+            c1, c2 = st.columns(2)
+            with c1:
+                st.write(f"**Price:** ${price:,}")
+                st.write(f"**Beds:** {house.get('bedrooms', 'N/A')}")
+            with c2:
+                st.write(f"**Baths:** {house.get('bathrooms', 'N/A')}")
+                st.write(f"**City:** {house.get('city', 'N/A')}")
+elif search_input:
+    st.warning(f"No listings found in the saved data for that {search_mode.lower()}.")
