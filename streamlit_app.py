@@ -5,22 +5,29 @@ import difflib
 # 1. Page Configuration
 st.set_page_config(page_title="OC House Locator", page_icon="🍊")
 
-# --- EXACT STYLE FROM YOUR PREVIOUS VERSION ---
+# 2. CSS: EXACT STYLE, PINNED TO BOTTOM
 st.markdown("""
     <style>
+    /* Your Vibrant Orange Background */
     .stApp {
         background-color: #FFF9F2;
         background-image:  url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' style='font-size:16px; opacity: 0.9;'%3E🍊%3C/text%3E%3C/svg%3E");
         background-attachment: fixed;
     }
     
-    /* Centered Search Bar Logic */
-    .main .block-container {
-        padding-top: 150px;
+    /* PINNING THE SEARCH BAR TO THE BOTTOM */
+    /* This targets the container holding the input and moves it down */
+    div[data-testid="stVerticalBlock"] > div:has(input) {
+        position: fixed;
+        bottom: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        width: 90%;
         max-width: 600px;
     }
 
-    /* Your Search Input Style (DO NOT CHANGE) */
+    /* KEEPING YOUR EXACT SEARCH BAR STYLE */
     div[data-baseweb="input"] {
         background-color: white !important;
         border: 2px solid #FFCC80 !important;
@@ -29,10 +36,13 @@ st.markdown("""
     }
     
     header, footer {visibility: hidden;}
+    
+    /* Ensure results don't get covered by the bottom bar */
+    .main .block-container { padding-bottom: 150px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. DATA LOADING
+# 3. DATA LOADING
 @st.cache_data
 def load_and_index_data():
     try:
@@ -52,15 +62,14 @@ def load_and_index_data():
 
 DATA_BY_ZIP, DATA_BY_CITY, KNOWN_CITIES = load_and_index_data()
 
-# 3. Search Interface
+# 4. THE SEARCH BAR (Label hidden for clean look)
 search_query = st.text_input("", placeholder="Search by ZIP or City...")
 
-# 4. Filter and Display Logic (INDENTATION FIXED)
+# 5. FILTER & DISPLAY (INDENTATION FIXED)
 if search_query:
     query = search_query.strip().title()
     results = []
     
-    # Logic to check ZIP first, then City
     if query in DATA_BY_ZIP:
         results = DATA_BY_ZIP[query]
     else:
@@ -68,7 +77,6 @@ if search_query:
         if matches:
             results = DATA_BY_CITY.get(matches[0], [])
 
-    # Displaying the results in expandable boxes
     if results:
         for house in results:
             addr = house.get('addressLine1', 'Listing')
