@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import difflib
 
-# 1. Page Configuration (Vibrant Oranges)
+# 1. Page Configuration (Vibrant Oranges preserved)
 st.set_page_config(page_title="OC House Locator", page_icon="🍊")
 
 st.markdown("""
@@ -20,42 +20,66 @@ st.markdown("""
 
 st.title("🍊 Orange County Home Finder")
 
-# 2. LOAD YOUR REAL SAVED DATA
+# 2. LOAD SAVED DATA & PREP CITY LIST
 @st.cache_data
-def load_data():
+def load_and_prep_data():
     try:
         with open('data.json', 'r') as f:
-            return json.load(f)
+            full_data = json.load(f)
+        
+        # Flatten the data so we can search by City easily
+        all_listings = []
+        cities = set()
+        for zip_code in full_data:
+            for listing in full_data[zip_code]:
+                all_listings.append(listing)
+                if listing.get("city"):
+                    cities.add(listing["city"])
+        
+        return full_data, all_listings, list(cities)
     except FileNotFoundError:
-        return {}
+        return {}, [], []
 
-DATA_BY_ZIP = load_data()
+DATA_BY_ZIP, ALL_LISTINGS, KNOWN_CITIES = load_and_prep_data()
 
 # 3. Search Interface
-search_query = st.text_input("Enter 5-digit ZIP Code", placeholder="e.g. 92660")
+search_type = st.radio("Search by:", ["ZIP Code", "City Name"])
+search_query = st.text_input(f"Enter {search_type}")
 
-# 4. Filter and Display
+# 4. Filter Logic
 if search_query:
-    # Check if the ZIP exists in your file
-    if search_query in DATA_BY_ZIP:
-        results = DATA_BY_ZIP[search_query]
-        st.success(f"Showing {len(results)} active listings in {search_query}")
+    results = []
+    
+    if search_type == "ZIP Code":
+        # Direct lookup in the dictionary keys
+        results = DATA_BY_ZIP.get(search_query, [])
+    else:
+        # City Search with Autocorrect
+        normalized = search_query.strip().title()
+        matches = difflib.get_close_matches(normalized, KNOWN_CITIES, n=1, cutoff=0.6)
         
+        if matches:
+            target_city = matches[0]
+            if target_city != normalized:
+                st.info(f"🔍 Showing results for: **{target_city}**")
+            # Filter all listings for this city
+            results = [h for h in ALL_LISTINGS if h.get("city") == target_city]
+
+    # 5. Display Results
+    if results:
+        st.success(f"Showing {len(results)} listings in {search_query}")
         for house in results:
             price = house.get('price', 0)
             addr = house.get('addressLine1', 'Unknown Address')
-            beds = house.get('bedrooms', 'N/A')
-            baths = house.get('bathrooms', 'N/A')
-            
             with st.expander(f"🏠 {addr} - ${price:,}"):
                 col1, col2 = st.columns(2)
                 with col1:
                     st.write(f"**Price:** ${price:,}")
-                    st.write(f"**Beds:** {beds}")
+                    st.write(f"**Beds:** {house.get('bedrooms', 'N/A')}")
                 with col2:
-                    st.write(f"**Baths:** {baths}")
+                    st.write(f"**Baths:** {house.get('bathrooms', 'N/A')}")
                     st.button("View Details", key=addr)
     else:
-        st.warning("No listings saved for that ZIP code. Try 92660 or 92672!")
+        st.warning(f"No listings found for that {search_type.lower()}.")
 else:
-    st.write("Enter a ZIP code from your database to see real-time property details.")
+    st.write("Enter a ZIP or City to see your saved Orange County listings.")
