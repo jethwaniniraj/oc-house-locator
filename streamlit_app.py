@@ -5,54 +5,69 @@ import difflib
 # 1. Page Configuration
 st.set_page_config(page_title="OC House Locator", page_icon="🍊")
 
-# 2. CSS: PINNED BOTTOM BAR, ORANGE GLOW, & HIDING INSTRUCTIONS
+# 2. CSS: PINNED BOTTOM BAR, ORANGE GLOW, & CIRCLE BUTTONS
 st.markdown("""
     <style>
-    /* Vibrant Orange Background Pattern */
     .stApp {
         background-color: #FFF9F2;
         background-image:  url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' style='font-size:16px; opacity: 0.9;'%3E🍊%3C/text%3E%3C/svg%3E");
         background-attachment: fixed;
     }
     
-    /* FIX THE SEARCH BAR TO THE BOTTOM */
-    div[data-testid="stVerticalBlock"] > div:has(input) {
+    /* FIX THE ENTIRE ROW TO THE BOTTOM */
+    div[data-testid="stHorizontalBlock"] {
         position: fixed;
         bottom: 50px;
         left: 50%;
         transform: translateX(-50%);
         z-index: 1000;
-        width: 90%;
-        max-width: 600px;
+        width: 95%;
+        max-width: 800px;
+        align-items: center;
     }
 
-    /* PRESERVED STYLE WITH ORANGE GLOW */
+    /* PRESERVED SEARCH BAR STYLE WITH GLOW */
     div[data-baseweb="input"] {
         background-color: white !important;
         border: 2px solid #FF8C00 !important;
         border-radius: 25px !important;
         height: 55px;
-        box-shadow: 0 0 15px 5px rgba(255, 140, 0, 0.5) !important;
+        box-shadow: 0 0 15px 5px rgba(255, 140, 0, 0.4) !important;
     }
 
-    /* REMOVE THE "PRESS ENTER TO APPLY" HINT ALTOGETHER */
-    div[data-testid="InputInstructions"] {
-        display: none !important;
+    /* STYLE FOR CIRCLE FILTER BUTTONS */
+    .stButton > button {
+        border-radius: 50% !important;
+        width: 55px !important;
+        height: 55px !important;
+        padding: 0px !important;
+        border: 2px solid #FF8C00 !important;
+        background-color: white !important;
+        color: #FF8C00 !important;
+        box-shadow: 0 0 10px 2px rgba(255, 140, 0, 0.3) !important;
+        transition: all 0.3s ease;
     }
+
+    .stButton > button:hover {
+        box-shadow: 0 0 20px 5px rgba(255, 140, 0, 0.6) !important;
+        transform: scale(1.05);
+        background-color: #FFF9F2 !important;
+    }
+
+    /* HIDE THE "PRESS ENTER" HINT */
+    div[data-testid="InputInstructions"] { display: none !important; }
     
-    /* Hide default Streamlit elements */
     header, footer {visibility: hidden;}
     .main .block-container { padding-bottom: 150px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. DATA LOADING (Pulling from local JSON)
+# 3. DATA LOADING
 @st.cache_data
 def load_and_index_data():
     try:
         with open('data.json', 'r') as f:
             raw_data = json.load(f)
-        
         city_to_listings = {}
         for zip_key, listings in raw_data.items():
             for house in listings:
@@ -66,10 +81,21 @@ def load_and_index_data():
 
 DATA_BY_ZIP, DATA_BY_CITY, KNOWN_CITIES = load_and_index_data()
 
-# 4. THE SEARCH BAR
-search_query = st.text_input("", placeholder="Search by ZIP Code or City")
+# 4. BOTTOM INTERFACE: [Button] [Search] [Button]
+col1, col2, col3 = st.columns([1, 4, 1])
 
-# 5. FILTER & DISPLAY
+with col1:
+    if st.button("⚖️", key="filter_left"):
+        st.toast("Price filters coming soon!")
+
+with col2:
+    search_query = st.text_input("", placeholder="Search by ZIP or City", label_visibility="collapsed")
+
+with col3:
+    if st.button("🛏️", key="filter_right"):
+        st.toast("Bed/Bath filters coming soon!")
+
+# 5. FILTER & DISPLAY LOGIC
 if search_query:
     query = search_query.strip().title()
     results = []
@@ -89,9 +115,7 @@ if search_query:
                 c1, c2 = st.columns(2)
                 with c1:
                     st.write(f"**Price:** ${price:,}")
-                    st.write(f"**Beds:** {house.get('bedrooms', 'N/A')}")
                 with c2:
-                    st.write(f"**Baths:** {house.get('bathrooms', 'N/A')}")
                     st.write(f"**City:** {house.get('city', 'N/A')}")
     else:
-        st.warning("No listings found in the saved data.")
+        st.warning("No listings found.")
