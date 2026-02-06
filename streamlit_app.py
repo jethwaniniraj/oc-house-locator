@@ -5,7 +5,7 @@ import difflib
 # 1. Page Configuration
 st.set_page_config(page_title="OC House Locator", page_icon="🍊")
 
-# Custom CSS for the "Bottom Search" minimalist Look
+# --- EXACT STYLE FROM YOUR PREVIOUS VERSION ---
 st.markdown("""
     <style>
     .stApp {
@@ -14,29 +14,25 @@ st.markdown("""
         background-attachment: fixed;
     }
     
-    /* Fixed Search Bar at the Bottom */
-    div[data-testid="stVerticalBlock"] > div:has(input) {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        width: 90%;
-        max-width: 700px;
-        background-color: rgba(255, 255, 255, 0.95);
-        padding: 10px;
-        border-radius: 35px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border: 2px solid #FFCC80;
+    /* Centered Search Bar Logic */
+    .main .block-container {
+        padding-top: 150px;
+        max-width: 600px;
     }
 
-    div[data-baseweb="input"] { background-color: transparent !important; border: none !important; height: 50px; }
+    /* Your Search Input Style (DO NOT CHANGE) */
+    div[data-baseweb="input"] {
+        background-color: white !important;
+        border: 2px solid #FFCC80 !important;
+        border-radius: 25px !important;
+        height: 55px;
+    }
+    
     header, footer {visibility: hidden;}
-    .main .block-container { padding-bottom: 120px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. DATA LOADING (Pulling from your local data.json)
+# 2. DATA LOADING
 @st.cache_data
 def load_and_index_data():
     try:
@@ -56,10 +52,10 @@ def load_and_index_data():
 
 DATA_BY_ZIP, DATA_BY_CITY, KNOWN_CITIES = load_and_index_data()
 
-# 3. Search Bar
-search_query = st.text_input("label_hidden", placeholder="Search OC Listings by ZIP or City...", label_visibility="collapsed")
+# 3. Search Interface
+search_query = st.text_input("", placeholder="Search by ZIP or City...")
 
-# 4. Search & Result Logic (CRITICAL: Indentation fixed here)
+# 4. Filter and Display Logic (INDENTATION FIXED)
 if search_query:
     query = search_query.strip().title()
     results = []
@@ -72,7 +68,7 @@ if search_query:
         if matches:
             results = DATA_BY_CITY.get(matches[0], [])
 
-    # Displaying the results
+    # Displaying the results in expandable boxes
     if results:
         for house in results:
             addr = house.get('addressLine1', 'Listing')
