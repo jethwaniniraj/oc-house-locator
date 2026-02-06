@@ -63,7 +63,7 @@ def load_and_index_data():
 DATA_BY_ZIP, DATA_BY_CITY, KNOWN_CITIES = load_and_index_data()
 
 # 4. THE SEARCH BAR (Label hidden for clean look)
-search_query = st.text_input("", placeholder="Search by ZIP or City...")
+search_query = st.text_input("", placeholder="Search by ZIP Code or City")
 
 # 5. FILTER & DISPLAY (INDENTATION FIXED)
 if search_query:
