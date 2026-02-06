@@ -1,39 +1,43 @@
 import streamlit as st
 import difflib
 
-# 1. Page Configuration & Aesthetic Fix
+# 1. Page Configuration
 st.set_page_config(page_title="OC House Locator", page_icon="🍊")
 
-# Custom CSS for the Orange Pattern Background
+# Custom CSS for VIBRANT small oranges background
 st.markdown("""
     <style>
     .stApp {
         background-color: #FFF9F2;
-        background-image:  url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' style='font-size:14px; opacity: 0.08;'%3E🍊%3C/text%3E%3C/svg%3E");
+        /* Increased opacity to 0.9 for high visibility like the header icon */
+        background-image:  url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' style='font-size:16px; opacity: 0.9;'%3E🍊%3C/text%3E%3C/svg%3E");
         background-attachment: fixed;
     }
     
-    /* Ensure text visibility */
+    /* Ensuring text remains the priority and highly readable */
     h1, h2, h3, p, label, .stText {
         color: #31333F !important;
+        /* Adding a slight text-shadow to help title pop against the pattern */
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
     }
 
-    /* Solid containers for search and results */
+    /* Solid white search boxes so the background doesn't bleed through the text */
     div[data-baseweb="input"] {
         background-color: white !important;
-        border: 1px solid #FFCC80 !important;
+        border: 2px solid #FFCC80 !important;
     }
     
     .stExpander {
         background-color: white !important;
         border-radius: 10px;
+        border: 1px solid #FFCC80;
     }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("🍊 Orange County Home Finder")
 
-# 2. Database (Fixed Syntax)
+# 2. Database
 LISTINGS = [
     {"address": "29 Small Grove", "city": "Irvine", "zip": "92618", "price": 4080000, "beds": 5, "baths": 6, "type": "Single Family", "sqft": 4209},
     {"address": "136 Pineview", "city": "Irvine", "zip": "92620", "price": 899000, "beds": 2, "baths": 3, "type": "Condo", "sqft": 1366},
