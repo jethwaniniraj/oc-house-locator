@@ -5,17 +5,17 @@ import difflib
 # 1. Page Configuration
 st.set_page_config(page_title="OC House Locator", page_icon="🍊")
 
-# 2. CSS: EXACT STYLE + ORANGE GLOW
+# 2. CSS: PINNED BOTTOM BAR, ORANGE GLOW, & HIDING INSTRUCTIONS
 st.markdown("""
     <style>
-    /* Your Vibrant Orange Background Pattern */
+    /* Vibrant Orange Background Pattern */
     .stApp {
         background-color: #FFF9F2;
         background-image:  url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' style='font-size:16px; opacity: 0.9;'%3E🍊%3C/text%3E%3C/svg%3E");
         background-attachment: fixed;
     }
     
-    /* ANCHOR SEARCH BAR TO BOTTOM */
+    /* FIX THE SEARCH BAR TO THE BOTTOM */
     div[data-testid="stVerticalBlock"] > div:has(input) {
         position: fixed;
         bottom: 50px;
@@ -26,28 +26,27 @@ st.markdown("""
         max-width: 600px;
     }
 
-    /* PRESERVED SEARCH BAR STYLE + ORANGE GLOW EFFECT */
+    /* PRESERVED STYLE WITH ORANGE GLOW */
     div[data-baseweb="input"] {
         background-color: white !important;
-        border: 2px solid #FF8C00 !important; /* Slightly deeper orange for the border */
+        border: 2px solid #FF8C00 !important;
         border-radius: 25px !important;
         height: 55px;
-        /* Glowing Box Shadow: Horizontal, Vertical, Blur, Spread, Color */
         box-shadow: 0 0 15px 5px rgba(255, 140, 0, 0.5) !important;
-        transition: box-shadow 0.3s ease-in-out;
     }
 
-    /* Pulse effect when the user clicks inside the bar */
-    div[data-baseweb="input"]:focus-within {
-        box-shadow: 0 0 25px 8px rgba(255, 140, 0, 0.7) !important;
+    /* REMOVE THE "PRESS ENTER TO APPLY" HINT ALTOGETHER */
+    div[data-testid="InputInstructions"] {
+        display: none !important;
     }
     
+    /* Hide default Streamlit elements */
     header, footer {visibility: hidden;}
     .main .block-container { padding-bottom: 150px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. DATA LOADING (Offline Mode)
+# 3. DATA LOADING (Pulling from local JSON)
 @st.cache_data
 def load_and_index_data():
     try:
@@ -70,7 +69,7 @@ DATA_BY_ZIP, DATA_BY_CITY, KNOWN_CITIES = load_and_index_data()
 # 4. THE SEARCH BAR
 search_query = st.text_input("", placeholder="Search by ZIP Code or City")
 
-# 5. FILTER & DISPLAY (Indentation Verified)
+# 5. FILTER & DISPLAY
 if search_query:
     query = search_query.strip().title()
     results = []
