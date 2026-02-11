@@ -1,98 +1,78 @@
+import requests
 import streamlit as st
-import json
-import difflib
+import folium
+from streamlit_folium import st_folium
 
-# 1. Page Configuration
-st.set_page_config(page_title="OC House Locator", page_icon="🍊")
+st.set_page_config(page_title="OC City Finder", layout="wide")
 
-# 2. CSS: EXACT STYLE + ORANGE GLOW
-st.markdown("""
-    <style>
-    /* Your Vibrant Orange Background Pattern */
-    .stApp {
-        background-color: #FFF9F2;
-        background-image:  url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' style='font-size:16px; opacity: 0.9;'%3E🍊%3C/text%3E%3C/svg%3E");
-        background-attachment: fixed;
+st.title("Orange County City Map")
+st.caption("Click a city boundary to see its name, or use the dropdown to highlight a city.")
+
+@st.cache_data(show_spinner=False)
+def load_oc_city_geojson():
+    url = "https://services.arcgis.com/UXmFoWC7yDHcDN5Q/ArcGIS/rest/services/Orange_County_Boundaries/FeatureServer/2/query"
+    params = {
+        "where": "PLACETYPE = 'City'",
+        "outFields": "NAME,PLACETYPE",
+        "returnGeometry": "true",
+        "outSR": "4326",
+        "f": "geojson",
     }
-    
-    /* ANCHOR SEARCH BAR TO BOTTOM */
-    div[data-testid="stVerticalBlock"] > div:has(input) {
-        position: fixed;
-        bottom: 50px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        width: 90%;
-        max-width: 600px;
-    }
+    resp = requests.get(url, params=params, timeout=30)
+    resp.raise_for_status()
+    data = resp.json()
+    if "features" not in data:
+        raise ValueError("No features returned from OC city boundary service.")
+    return data
 
-    /* PRESERVED SEARCH BAR STYLE + ORANGE GLOW EFFECT */
-    div[data-baseweb="input"] {
-        background-color: white !important;
-        border: 2px solid #FF8C00 !important; /* Slightly deeper orange for the border */
-        border-radius: 25px !important;
-        height: 55px;
-        /* Glowing Box Shadow: Horizontal, Vertical, Blur, Spread, Color */
-        box-shadow: 0 0 15px 5px rgba(255, 140, 0, 0.5) !important;
-        transition: box-shadow 0.3s ease-in-out;
-    }
+def feature_bounds(feature):
+    geom = feature.get("geometry") or {}
+    gtype = geom.get("type")
+    coords = geom.get("coordinates") or []
+    points = []
 
-    /* Pulse effect when the user clicks inside the bar */
-    div[data-baseweb="input"]:focus-within {
-        box-shadow: 0 0 25px 8px rgba(255, 140, 0, 0.7) !important;
-    }
-    
-    header, footer {visibility: hidden;}
-    .main .block-container { padding-bottom: 150px; }
-    </style>
-    """, unsafe_allow_html=True)
+    if gtype == "Polygon":
+        for ring in coords:
+            points.extend(ring)
+    elif gtype == "MultiPolygon":
+        for poly in coords:
+            for ring in poly:
+                points.extend(ring)
 
-# 3. DATA LOADING (Offline Mode)
-@st.cache_data
-def load_and_index_data():
-    try:
-        with open('data.json', 'r') as f:
-            raw_data = json.load(f)
-        
-        city_to_listings = {}
-        for zip_key, listings in raw_data.items():
-            for house in listings:
-                city_name = house.get('city', 'Unknown').strip().title()
-                if city_name not in city_to_listings:
-                    city_to_listings[city_name] = []
-                city_to_listings[city_name].append(house)
-        return raw_data, city_to_listings, list(city_to_listings.keys())
-    except FileNotFoundError:
-        return {}, {}, []
+    lats = [p[1] for p in points] if points else []
+    lons = [p[0] for p in points] if points else []
+    if not lats or not lons:
+        return None
+    return [[min(lats), min(lons)], [max(lats), max(lons)]]
 
-DATA_BY_ZIP, DATA_BY_CITY, KNOWN_CITIES = load_and_index_data()
+geojson = load_oc_city_geojson()
+city_names = sorted({f["properties"].get("NAME", "").strip() for f in geojson["features"] if f.get("properties")})
 
-# 4. THE SEARCH BAR
-search_query = st.text_input("", placeholder="Search by ZIP Code or City")
+selected_city = st.selectbox("Select a city", ["(All cities)"] + city_names, index=0)
 
-# 5. FILTER & DISPLAY (Indentation Verified)
-if search_query:
-    query = search_query.strip().title()
-    results = []
-    
-    if query in DATA_BY_ZIP:
-        results = DATA_BY_ZIP[query]
-    else:
-        matches = difflib.get_close_matches(query, KNOWN_CITIES, n=1, cutoff=0.6)
-        if matches:
-            results = DATA_BY_CITY.get(matches[0], [])
+def style_fn(feature):
+    name = feature["properties"].get("NAME")
+    if selected_city != "(All cities)" and name == selected_city:
+        return {"color": "#ff7a00", "weight": 3, "fillColor": "#ffb347", "fillOpacity": 0.55}
+    return {"color": "#666666", "weight": 1.5, "fillColor": "#f3efe6", "fillOpacity": 0.15}
 
-    if results:
-        for house in results:
-            addr = house.get('addressLine1', 'Listing')
-            price = house.get('price', 0)
-            with st.expander(f"🏠 {addr} - ${price:,}"):
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.write(f"**Price:** ${price:,}")
-                    st.write(f"**Beds:** {house.get('bedrooms', 'N/A')}")
-                with c2:
-                    st.write(f"**Baths:** {house.get('bathrooms', 'N/A')}")
-                    st.write(f"**City:** {house.get('city', 'N/A')}")
-    else:
-        st.warning("No listings found in the saved data.")
+m = folium.Map(location=[33.67, -117.78], zoom_start=10, tiles="CartoDB positron")
+
+folium.GeoJson(
+    geojson,
+    name="OC Cities",
+    style_function=style_fn,
+    tooltip=folium.GeoJsonTooltip(fields=["NAME"], aliases=["City"]),
+).add_to(m)
+
+if selected_city != "(All cities)":
+    selected_feature = next(
+        (f for f in geojson["features"] if f["properties"].get("NAME") == selected_city),
+        None,
+    )
+    if selected_feature:
+        bounds = feature_bounds(selected_feature)
+        if bounds:
+            m.fit_bounds(bounds)
+
+st_folium(m, use_container_width=True, height=650)
