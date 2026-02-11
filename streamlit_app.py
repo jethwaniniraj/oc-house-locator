@@ -47,7 +47,38 @@ st.markdown("""
     }
     
     header, footer {visibility: hidden;}
-    .main .block-container { padding-bottom: 150px; }
+.main .block-container { padding-bottom: 150px; }
+
+/* PASTE HERE */
+div.stfolium {
+    border-radius: 18px;
+    border: 2px solid rgba(255, 140, 0, 0.35);
+    box-shadow: 0 10px 28px rgba(255, 140, 0, 0.18);
+    overflow: hidden;
+    background: #FFF5EA;
+}
+div.stfolium iframe {
+    border-radius: 18px;
+}
+.leaflet-control-zoom a {
+    background: #FFF5EA !important;
+    border: 1px solid #F2C79F !important;
+    color: #7A3B00 !important;
+}
+.leaflet-control-zoom a:hover {
+    background: #FFEBD6 !important;
+}
+.leaflet-bar {
+    box-shadow: 0 6px 16px rgba(255, 140, 0, 0.18);
+    border-radius: 10px;
+}
+.leaflet-control-attribution {
+    background: rgba(255, 249, 242, 0.9) !important;
+    color: #8A5A2B !important;
+    border-radius: 8px;
+    padding: 2px 6px;
+}
+
     </style>
     """, unsafe_allow_html=True)
 
