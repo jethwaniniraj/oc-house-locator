@@ -2,7 +2,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 
-# 1. CSS for the Orange UI Blend (Headline Removed)
+# 1. CSS for the Orange UI (Filter Button Removed)
 st.markdown("""
     <style>
     .stApp {
@@ -10,7 +10,7 @@ st.markdown("""
         background-image:  url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' style='font-size:16px; opacity: 0.9;'%3E🍊%3C/text%3E%3C/svg%3E");
     }
 
-    /* Blending the Map to the Theme */
+    /* Map Styling & Orange Tint */
     iframe {
         border-radius: 20px !important;
         border: 2px solid #FF8C00 !important;
@@ -19,7 +19,7 @@ st.markdown("""
         margin-top: 20px;
     }
 
-    /* Pinned Bottom Search Bar */
+    /* Perfectly Centered Pinned Bottom Search Bar */
     div[data-testid="stHorizontalBlock"] {
         position: fixed;
         bottom: 50px;
@@ -27,11 +27,10 @@ st.markdown("""
         transform: translateX(-50%);
         z-index: 1000;
         width: 100%;
-        max-width: 800px;
+        max-width: 700px; /* Narrowed for a cleaner look without the button */
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 15px !important;
     }
     
     div[data-baseweb="input"] {
@@ -47,12 +46,12 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 2. Map Function (Centered on OC)
+# 2. Map Function (OC-Centric)
 def draw_interactive_map():
-    # Positron tiles work best with our orange CSS filter
+    # Centered on Orange County
     m = folium.Map(location=[33.7175, -117.8311], zoom_start=10, tiles='CartoDB positron')
     
-    # Example City Markers
+    # Major City Points
     oc_cities = {
         "Irvine": [33.6846, -117.8265],
         "Newport Beach": [33.6189, -117.9298],
@@ -69,17 +68,13 @@ def draw_interactive_map():
     
     return st_folium(m, height=500, width="100%", returned_objects=["last_object_clicked_tooltip"])
 
-# 3. Main Logic (No st.title)
+# 3. App Execution
 map_data = draw_interactive_map()
 
-# Update search based on map interaction
+# Capture Map Interaction
 selected_city = ""
 if map_data and map_data.get("last_object_clicked_tooltip"):
     selected_city = map_data["last_object_clicked_tooltip"].replace("View ", "")
 
-# Layout for the Bottom Bar
-col1, col2 = st.columns([6, 1])
-with col1:
-    search_query = st.text_input("", value=selected_city, placeholder="Search by ZIP or City", label_visibility="collapsed")
-with col2:
-    st.button("🛏️", key="filter_btn")
+# Single Centered Search Bar
+st.text_input("", value=selected_city, placeholder="Search by ZIP or City", label_visibility="collapsed")
