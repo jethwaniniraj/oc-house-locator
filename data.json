@@ -1,22 +1,11 @@
-import requests
-import json
-
-# Your RentCast API Key
-API_KEY = "YOUR_RENTCAST_API_KEY"
-# List of major OC Zip Codes to harvest
-OC_ZIPS = ["92660", "92618", "92672", "92701", "92801"] 
-
-all_listings = {}
-
-for zipcode in OC_ZIPS:
-    url = f"https://api.rentcast.io/v1/listings/residential/sale?zipCode={zipcode}"
-    headers = {"accept": "application/json", "X-Api-Key": API_KEY}
-    response = requests.get(url, headers=headers)
-    
-    if response.status_status == 200:
-        all_listings[zipcode] = response.json()
-        print(f"Fetched {zipcode}")
-
-# Save to your system for offline use
-with open('data.json', 'w') as f:
-    json.dump(all_listings, f)
+{
+  "92618": [
+    {
+      "addressLine1": "Example OC Property",
+      "city": "Irvine",
+      "price": 1250000,
+      "bedrooms": 3,
+      "bathrooms": 2
+    }
+  ]
+}
